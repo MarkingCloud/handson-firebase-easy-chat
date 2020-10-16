@@ -1,0 +1,495 @@
+
+<!doctype html>
+
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <meta name="theme-color" content="#4F7DC9">
+  <meta charset="UTF-8">
+  <title>Firebaseハンズオン-Webチャット編-</title>
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro:400|Roboto:400,300,400italic,500,700|Roboto+Mono">
+  <link rel="stylesheet" href="//fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://storage.googleapis.com/codelab-elements/codelab-elements.css">
+  <style>
+    .success {
+      color: #1e8e3e;
+    }
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <google-codelab-analytics gaid="UA-49880327-14"></google-codelab-analytics>
+  <google-codelab codelab-gaid=""
+                  id="handson-firebase-web-chat"
+                  title="Firebaseハンズオン-Webチャット編-"
+                  environment="web"
+                  feedback-link="https://github.com/MarkingCloud/handson-firebase-easy-chat/issues">
+    
+      <google-codelab-step label="概要" duration="1">
+        <p>このハンズオンでは、Firebase で簡単なWebチャットサービスをつくります。</p>
+<p>サンプルアプリ :</p>
+<p><a href="https://easy-chat-a71d8.web.app/" target="_blank">https://easy-chat-a71d8.web.app/</a><br></p>
+<p class="image-container"><img style="width: 602.00px" src="img/cf44df5fc4eb33f8.png"></p>
+<h2 class="checklist" is-upgraded>What you&#39;ll learn</h2>
+<ul class="checklist">
+<li>Firebaseとは何かを学ぶ</li>
+<li>Firebaseの使い方を学ぶ</li>
+<li>作成したアプリを全世界に公開する</li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="事前準備" duration="2">
+        <h2 is-upgraded><strong>ソースコードの準備</strong></h2>
+<p>下のボタンから Cloud Shell を開きます。</p>
+<p><a href="https://console.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2Fkappa0923%2Feasy-chat.git" target="_blank"><paper-button class="colored" raised>OPEN IN CLOUD SHELL</paper-button></a></p>
+<p class="image-container"><img style="width: 601.70px" src="img/c1da9938e480f322.png"></p>
+<p>ディレクトリ構成はこんな感じです。</p>
+<pre><code>easy-chat/
+├── firebase.json
+├── images
+│   ├── firebase-icon-192x192.png
+│   ├── firebase-icon-48x48.png
+│   ├── firebase-icon-96x96.png
+│   ├── firebase-logo.png
+│   └── profile_placeholder.png
+├── index.html
+├── LICENSE
+├── login.html
+├── manifest.json
+├── manifest.webapp
+├── README.md
+├── scripts
+│   ├── login.js
+│   └── main.js
+└── styles
+    └── main.css</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="講師紹介" duration="1">
+        <p class="image-container"><img style="width: 218.17px" src="img/fffc362a4c4ebaab.jpeg"></p>
+<h2 is-upgraded><strong>名前</strong></h2>
+<p>渡辺 友康(kappa0923)</p>
+<h2 is-upgraded><strong>普段は</strong></h2>
+<ul>
+<li>GCP, AWSのArchitect</li>
+<li>AWS認定ソリューションアーキテクト</li>
+</ul>
+<h2 is-upgraded><strong>コミュニティも色々</strong></h2>
+<ul>
+<li>GDG Tokyo (<a href="https://gdg-tokyo.connpass.com/" target="_blank">https://gdg-tokyo.connpass.com/</a>)</li>
+<li>Firebase Japan User Group (<a href="https://firebase-community.connpass.com/" target="_blank">https://firebase-community.connpass.com/</a>)</li>
+<li>Marking Cloud (<a href="https://markingcloud.connpass.com/" target="_blank">https://markingcloud.connpass.com/</a>)</li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Firebaseとは" duration="2">
+        <h2 is-upgraded>概要</h2>
+<p>アプリ開発のためのクラウド mBaaS (mobile Backend as a Service)</p>
+<ul>
+<li>アプリ開発に必要な機能（DB, Storage, etc.）</li>
+<li>インフラ周りの構築、メンテナンスが不要</li>
+<li>2014年に Google が買収し、GCP の一部に</li>
+<li>無料枠が大きい</li>
+</ul>
+<p><a href="https://cloud.google.com/blog/products/gcp/choosing-the-right-compute-option-in-gcp-a-decision-tree" target="_blank">Choosing the right compute option in GCP: a decision tree</a></p>
+<p><a href="https://firebase.google.com/pricing?authuser=0" target="_blank">料金プラン</a></p>
+<p class="image-container"><img style="width: 601.70px" src="img/e780face91badab1.png"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="ハンズオン開始" duration="2">
+        <h2 is-upgraded><strong>アーキテクチャ概要図</strong></h2>
+<p class="image-container"><img style="width: 602.00px" src="img/cd50e938f5ffe629.png"></p>
+<ol type="1" start="1">
+<li>ClientがブラウザでHostingにアクセスし、Webチャットアプリを表示</li>
+<li>Firestoreにチャットデータを保存&amp;読み込み</li>
+<li>書き込むユーザーを制限するため、Authenticationでログイン機能の実装</li>
+</ol>
+<p>コードの記述やデプロイ作業は全てCloud Shellから実行します</p>
+<aside class="special"><h2 is-upgraded><strong>Cloud Shellとは</strong></h2>
+<ul>
+<li>GCPのサービスの一つ</li>
+<li>クラウド上の開発環境</li>
+<li>アカウントごとに仮想環境がもらえる（すごい！）</li>
+<li><a href="https://cloud.google.com/shell/docs/open-in-cloud-shell" target="_blank">GitHubと連携</a>させることで、<strong>開発環境を一発で構築！</strong></li>
+</ul>
+</aside>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Firebaseプロジェクトの作成" duration="2">
+        <h2 is-upgraded><strong>プロジェクトの作成</strong></h2>
+<p><a href="https://console.firebase.google.com/" target="_blank">Firebaseのコンソール</a>を開き、「プロジェクトを追加」を選択。</p>
+<p>好きなプロジェクト名を入力して「続行」を選択。</p>
+<aside class="special"><p>このとき表示されているプロジェクトIDを控えておきます</p>
+</aside>
+<p>Google アナリティクスは無効にして「作成」。</p>
+<p class="image-container"><img style="width: 601.70px" src="img/36f957e9b4dfba0d.png"></p>
+<h2 is-upgraded><strong>Firebase プロジェクトを紐付け</strong></h2>
+<p>Cloud Shell で以下のコマンドを実行します。</p>
+<p><code>CloudShell</code></p>
+<pre>firebase login --no-localhost --reauth</pre>
+<p>Firebaseプロジェクトを作成したアカウントでログインし、表示されるトークンをCloudShellにペーストして、CloudShellとFirebaseプロジェクトの紐付け完了です。</p>
+<aside class="warning"><p><strong>注意: </strong>URLはクリックせずcopy&amp;pastしてください</p>
+</aside>
+<p class="image-container"><img style="width: 601.70px" src="img/780eb653190835c3.png"></p>
+<p>次のコマンドで作成したプロジェクトを設定します。</p>
+<p><code>CloudShell</code></p>
+<pre>firebase use &lt;PROJECT_ID&gt; // &lt;PROJECT_ID&gt;はさっきメモしたものに書き換えます</pre>
+<p>プロジェクトIDは「プロジェクトを設定」から再確認できます。</p>
+<p class="image-container"><img style="width: 601.70px" src="img/94fed6721837e6ae.png"></p>
+<p>以下の確認コマンドで正しいプロジェクトに (current) とついていればOKです。</p>
+<p><code>CloudShell</code></p>
+<pre>firebase projects:list</pre>
+<p class="image-container"><img style="width: 601.70px" src="img/ec2cf65e796f8be2.png"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Firebaseにアプリを追加" duration="2">
+        <p>Firebaseではアプリという単位でリソースを管理します。</p>
+<h2 is-upgraded><strong>Firebaseコンソールからアプリを追加</strong></h2>
+<p>コンソールトップ画面のwebマーク(<code>&lt;/&gt;</code>)を選択してアプリを追加。</p>
+<ol type="1" start="1">
+<li>任意のアプリのニックネームを設定</li>
+<li>「このアプリの Firebase Hosting も設定します。」にチェック</li>
+<li>アプリを登録を選択</li>
+<li>②③④は事前に準備済みなので何もせず「次へ」</li>
+</ol>
+<p class="image-container"><img style="width: 601.70px" src="img/5abae3b9c758ab43.png"></p>
+<p class="image-container"><img style="width: 601.70px" src="img/2c878a7efff3cea8.png"></p>
+<p class="image-container"><img style="width: 601.70px" src="img/8997329b1479e204.png"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="CloudShell ローカルで動作確認" duration="2">
+        <p>CloudShell で以下のコマンドを実行します。</p>
+<p><code>CloudShell</code></p>
+<pre>firebase serve --only hosting --port 8080</pre>
+<p class="image-container"><img style="width: 601.70px" src="img/b893e50272dd8a7a.png"></p>
+<aside class="warning"><p><strong>注意: </strong>URLはcopy&amp;pastせずクリックしてください</p>
+</aside>
+<p>出力されたURLをクリックしてこんな画面が表示されたらOK。(まだチャットはできない)</p>
+<p class="image-container"><img style="width: 601.70px" src="img/ba1e03b8ea525e46.png"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="メッセージ送信処理の実装" duration="5">
+        <h2 is-upgraded><strong>メッセージ送信処理</strong></h2>
+<p>メッセージを入力して送信したときの処理を実装します。</p>
+<ol type="1" start="1">
+<li><code>scripts/main.js</code> を開きます。</li>
+<li><code>saveMessage(e)</code> という関数を見つけます。</li>
+<li>関数全体を次のコードに置き換えます。</li>
+</ol>
+<h3 is-upgraded>main.js</h3>
+<pre><code>// Saves a new message on the Firestore.
+saveMessage(e) {
+  e.preventDefault();
+
+  if (this.messageInput.value) {
+    var date = new Date();
+    this.displayMessage(date.getTime(), &#39;User Name&#39;, this.messageInput.value, &#39;images/profile_placeholder.png&#39;);
+  }
+}</code></pre>
+<p>修正が完了したらコードを保存して、アプリをリロードします。</p>
+<h2 is-upgraded><strong>メッセージの送信を試す</strong></h2>
+<p>アプリでメッセージを入力して「SEND」を押すとメッセージがチャット部に表示されます。</p>
+<p class="image-container"><img style="width: 583.94px" src="img/7e7bd3ba64ae4dd7.png"></p>
+<p>Firestoreに保存する処理をまだ実装していないため、ブラウザをリロードするとメッセージが消えてしまいます。</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Firestoreの作成" duration="5">
+        <h2 is-upgraded>メッセージを保存するためにFirestoreの設定を行います<strong>。</strong></h2>
+<p>FirebaseコンソールからFirestoreを有効化します。</p>
+<ol type="1" start="1">
+<li>左側のメニューから「Database」を選択します。</li>
+<li>中央に表示される「データベースの作成」を選択します。</li>
+<li>セキュリティルールは「テストモード」を選択します。</li>
+<li>リージョンは「asia-northeast1」を選択します。</li>
+</ol>
+<p class="image-container"><img style="width: 601.70px" src="img/388a2339547fea16.png"></p>
+<p class="image-container"><img style="width: 601.70px" src="img/aa375fdc106b4c23.png"></p>
+<h2 is-upgraded><strong>仮データをFirestoreに作成します。</strong></h2>
+<p>Firestoreのセットアップが完了したら、チャットに表示するためのメッセージを作成します。</p>
+<ol type="1" start="1">
+<li>「コレクションを開始」を選択します。</li>
+<li>コレクションIDに <code>messages</code> を入力します。</li>
+<li>画像のように <code>message, name, photoURL, timestamp</code> を入力します。</li>
+<li>入力できたら「保存」を選択し、Firestoreにデータを保存します。</li>
+</ol>
+<p class="image-container"><img style="width: 455.54px" src="img/f8a649d1f85e6bb0.png"></p>
+<p class="image-container"><img style="width: 429.16px" src="img/a37b9982e52a95b7.png"></p>
+<p class="image-container"><img style="width: 431.50px" src="img/9e33bcf6d1b5950e.png"></p>
+<h2 is-upgraded><strong>保存されたときのイメージ</strong></h2>
+<p class="image-container"><img style="width: 601.70px" src="img/67a275470d1f3063.png"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Firestoreからデータの読み込み" duration="5">
+        <p>作成したデータをFirestoreから読み込むための処理を実装します。</p>
+<ol type="1" start="1">
+<li><code>scripts/main.js</code> を開きます。</li>
+<li><code>loadMessages()</code> という関数を見つけます。</li>
+<li>関数全体を次のコードに置き換えます。</li>
+</ol>
+<h3 is-upgraded>main.js</h3>
+<pre><code>// Loads chat messages history and listens for upcoming ones.
+loadMessages() {
+  // Firestoreからメッセージを１度だけ読み込み
+  this.firestore.collection(&#39;messages&#39;)
+    .orderBy(&#39;timestamp&#39;)
+    .get()
+    .then((querySnapshot) =&gt; {
+      querySnapshot.forEach((doc) =&gt; {
+        this.displayMessage(doc.id, doc.data().name, doc.data().message, &#39;images/profile_placeholder.png&#39;)
+    });
+  })
+}</code></pre>
+<p>修正が完了したらコードを保存して、アプリをリロードします。</p>
+<p class="image-container"><img style="width: 527.03px" src="img/e38b2eee62c2c172.png"></p>
+<p>先ほどFirestoreに保存したデータがチャットに表示されるようになりました！</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Firestoreへデータの書き込み" duration="5">
+        <p>書き込んだメッセージを永続的なものとするため、Firestoreへ書き込む処理を実装します。</p>
+<ol type="1" start="1">
+<li><code>scripts/main.js</code> を開きます。</li>
+<li><code>saveMessage()</code> という関数を見つけます。</li>
+<li>関数全体を次のコードに置き換えます。</li>
+</ol>
+<h3 is-upgraded>main.js</h3>
+<pre><code>// Saves a new message on the Firestore.
+saveMessage(e) {
+  // メッセージをFirestoreへ保存する処理
+  if (this.messageInput.value) {
+    this.firestore.collection(&#39;messages&#39;).add({
+      name: &#34;User Name&#34;,
+      message: this.messageInput.value,
+      photoURL: &#39;/images/profile_placeholder.png&#39;,
+      timestamp: new Date()
+    })
+    .catch(function(error) {
+      console.error(&#34;Error adding document: &#34;, error);
+    });
+
+    this.resetMaterialTextfield(this.messageInput);
+    this.toggleButton();
+  }
+}</code></pre>
+<p>修正が完了したらコードを保存して、アプリをリロードします。</p>
+<p>メッセージを書き込んだ後にアプリをリロードすると、書き込んだメッセージが表示されるようになりました！</p>
+<p>FirebaseコンソールからFirestoreを確認すると、データが書き込まれていることを確認できます。</p>
+<aside class="special"><p>Firestoreからの読み込み処理がアプリロード時にしか行われていないため、書き込んだメッセージは<strong>まだ</strong>リアルタイムで表示されません。</p>
+</aside>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="メッセージをリアルタイムに反映する" duration="5">
+        <p>書き込んだメッセージをリアルタイムにアプリに反映するため、リアルタイム処理を実装します。</p>
+<ol type="1" start="1">
+<li><code>scripts/main.js</code> を開きます。</li>
+<li><code>initFirebase()</code> という関数を見つけます。</li>
+<li>関数全体を次のコードに置き換えます。</li>
+<li><code>this.loadMessages();</code> が不要になったのでコメントアウトします。</li>
+</ol>
+<h3 is-upgraded>main.js</h3>
+<pre><code>// Sets up Firebase features.
+initFirebase() {
+  // Firestoreを使うための初期化処理
+  this.firestore = firebase.firestore();
+
+  // Firestoreからリアルタイムに読み込むための処理
+  var that = this;
+  this.firestore.collection(&#39;messages&#39;)
+    .orderBy(&#39;timestamp&#39;)
+    .onSnapshot(function(querySnapshot) {
+      querySnapshot.docChanges().forEach(function(change) {
+        if (change.type === &#34;added&#34;) {
+          that.displayMessage(change.doc.id, change.doc.data().name, change.doc.data().message, change.doc.data().photoURL)
+        }
+      });
+    });
+};</code></pre>
+<p>修正が完了したらコードを保存して、アプリをリロードします。</p>
+<p>メッセージを書き込むとリアルタイムで表示に反映されるようになりました！</p>
+<aside class="special"><p><code>change.type === &#34;added&#34;</code> とすることで、データがFirestoreに追加されると表示できるようにしています。</p>
+<p>設定次第で <code>&#34;deleted&#34;</code> とかも取れるので、色々な使い方ができます。</p>
+</aside>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="アプリをインターネットに公開する" duration="1">
+        <p>アプリをインターネットに公開し、誰でもアクセスできるようにするため、Firebase Hosting にデプロイします。</p>
+<p><code>CloudShell</code></p>
+<pre>firebase deploy --only hosting</pre>
+<p class="image-container"><img style="width: 601.70px" src="img/5ade1fdfa2053e73.png"></p>
+<p>自動的に URL が振られ、どこからでもアクセス可能！</p>
+<ul>
+<li>Hosting URL: に表示されている URL にアクセスすると、作成したアプリが表示されます。</li>
+<li>インターネットに公開されているので、他の端末からもアクセスできます！</li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="ログイン機能の実装（オプション）" duration="10">
+        <p>ここからは更にAdvancedな内容になります。</p>
+<p>ここまでの動作を理解し、更に発展的な内容を学習したい人のみチャレンジしてください。</p>
+<p>いまのWebチャットアプリは誰でも匿名で書き込むことができるようになっています。</p>
+<p>しかし、実際にアプリを公開していくことを考えると、ログイン機能が欲しくなってきますね。</p>
+<p>そこで、Firebase Authenticationを使ってログイン機能を実装していきます。</p>
+<h2 is-upgraded><strong>FirebaseコンソールからAuthenticationを有効化</strong></h2>
+<p>まずはログインプロバイダとしてGoogleを使えるようにします。</p>
+<ol type="1" start="1">
+<li>FirebaseコンソールのメニューからAuthenticationを選択します。</li>
+<li>「ログイン方法を設定」を選択します。</li>
+<li>ログインプロバイダから「Google」を選択します。</li>
+<li>「有効にする」のスイッチを有効化し、「保存」を選択します。</li>
+</ol>
+<h2 is-upgraded><strong>Firebase Authentication初期化の実装</strong></h2>
+<p>Firebase Authenticationの機能を使えるようにするため、初期化処理を実装します。</p>
+<ol type="1" start="1">
+<li><code>scripts/main.js</code> を開きます。</li>
+<li><code>initAuth()</code> という関数を見つけます。</li>
+<li>関数全体を次のコードに置き換えます。</li>
+</ol>
+<h3 is-upgraded>main.js</h3>
+<pre><code>// Sets up Firebase Authentication.
+initAuth() {
+  // Firebase Authの初期化処理
+  this.auth = firebase.auth();
+  this.auth.onAuthStateChanged(this.onAuthStateChanged.bind(this));
+}</code></pre>
+<h2 is-upgraded><strong>認証後の初回メッセージ読み込みの実装</strong></h2>
+<p>Firebase Authenticationのでログイン後、初回のメッセージ読み込み処理を実装します。</p>
+<ol type="1" start="1">
+<li><code>scripts/main.js</code> を開きます。</li>
+<li><code>loadMessages()</code> という関数を見つけます。</li>
+<li>関数全体を次のコードに置き換えます。</li>
+</ol>
+<h3 is-upgraded>main.js</h3>
+<pre><code>// Loads chat messages history and listens for upcoming ones.
+loadMessages() {
+  // 初回メッセージ読み込み(認証後)
+  this.firestore.collection(&#39;messages&#39;)
+    .orderBy(&#39;timestamp&#39;)
+    .get()
+    .then((querySnapshot) =&gt; {
+      querySnapshot.forEach((doc) =&gt; {
+        this.displayMessage(doc.id, doc.data().name, doc.data().message, doc.data().photoURL)
+      });
+    })
+};</code></pre>
+<h2 is-upgraded><strong>メッセージ送信時のログインチェックの実装</strong></h2>
+<p>ログイン済みのユーザーのみメッセージを送信できるように処理を実装します。</p>
+<ol type="1" start="1">
+<li><code>scripts/main.js</code> を開きます。</li>
+<li><code>saveMessage()</code> という関数を見つけます。</li>
+<li>関数全体を次のコードに置き換えます。</li>
+</ol>
+<h3 is-upgraded>main.js</h3>
+<pre><code>// Saves a new message on the Firestore.
+saveMessage(e) {
+  e.preventDefault();
+
+  // メッセージ読み込み時の認証チェックを追加
+  if (this.messageInput.value &amp;&amp; this.checkSignedInWithMessage()) {
+    this.firestore.collection(&#39;messages&#39;).add({
+      name: this.auth.currentUser.displayName,
+      message: this.messageInput.value,
+      photoURL: this.auth.currentUser.photoURL || &#39;/images/profile_placeholder.png&#39;,
+      timestamp: new Date()
+    })
+    .catch(function(error) {
+      console.error(&#34;Error adding document: &#34;, error);
+    });
+
+    this.resetMaterialTextfield(this.messageInput);
+    this.toggleButton();
+  }
+};</code></pre>
+<h2 is-upgraded><strong>動作確認</strong></h2>
+<p>Webチャットアプリにログイン機能が実装されました！</p>
+<p>再デプロイ後、実際にログインして動作を確認してみましょう！</p>
+<p><code>CloudShell</code></p>
+<pre>firebase deploy --only hosting</pre>
+<p>ちゃんと実装できているとログイン画面が表示されるようになります。</p>
+<p class="image-container"><img style="width: 523.46px" src="img/665fac008bfe2732.png"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="終わりに" duration="5">
+        <p>Firebaseを使ってログイン機能つきのWebチャットアプリを作成することができました！</p>
+<p>複雑そうな処理もFirebaseを使えば簡単に実装できることが実感できたかと思います。</p>
+<p>ここから先は各自、思い思いに改良してみてください。</p>
+<h2 is-upgraded><strong>アンケート</strong></h2>
+<p>最後にアンケートがありますので、より良い勉強会作りのためにご協力お願い致します。</p>
+<p><a href="https://docs.google.com/forms/d/e/1FAIpQLSdEftxnlFhOlaVvArfSQ868ksaG6dR0klid7P5GAOVa3zG-uw/viewform" target="_blank"><paper-button class="colored" raised>アンケート</paper-button></a></p>
+<aside class="special"><h2 is-upgraded><strong>MarkingCloudをフォロー！</strong></h2>
+<h3 is-upgraded><strong>Twitterやってます！</strong></h3>
+<p>MarkingCloudメンバーで<a href="https://twitter.com/MarkingCloud" target="_blank">Twitter</a>をやってます。</p>
+<p>クラウド関連の情報や、その他(キングダム、左利きのエレンなど)を不定期でつぶやきます。</p>
+<p>よろしければのぞいてみてください！(フォローもお願いします！)</p>
+<h3 is-upgraded><strong>(株)アイソルートのHPです！</strong></h3>
+<p>運営スタッフが所属する<a href="https://www.isoroot.jp/" target="_blank">(株)アイソルートのHP</a>です。</p>
+<p>一緒にお仕事できそうな方、転職を考えている方など、</p>
+<p>よろしければのぞいてみて下さい！</p>
+<h3 is-upgraded><strong>ブログやってます！</strong></h3>
+<p>運営スタッフの所属する<a href="https://www.isoroot.jp/blog/" target="_blank">(株)アイソルートの仲間たちが書いてるブログ</a>です。</p>
+<p>以下のような雑多なテーマでいろいろ書いています。</p>
+<p>よろしければのぞいてみてください！</p>
+<ul>
+<li>Amazon Web Services(3)</li>
+<li>DevOps(9)</li>
+<li>Google Cloud Platform(33)</li>
+<li>Microsoft Azure(4)</li>
+<li>Web開発(7)</li>
+<li>アジャイル(4)</li>
+<li>インフラ(9)</li>
+<li>スマートスピーカー(3)</li>
+<li>チャットボット(3)</li>
+<li>ネットワーク(7)</li>
+<li>モバイル開発(20)</li>
+<li>レポート(8)</li>
+<li>記事(5)</li>
+</ul>
+<h3 is-upgraded><strong>コミュトレ！</strong></h3>
+<p>運営スタッフの所属する(株)アイソルートが提供している<a href="https://commu-training.isoroot.jp/" target="_blank">「コミュトレ」</a>という教育サービスです！</p>
+<p>社会人のコミュニケーション能力のトレーニングを行うサービスです。</p>
+<p>面白いサービスですのでぜひ見てみて下さい！</p>
+</aside>
+
+
+      </google-codelab-step>
+    
+  </google-codelab>
+
+  <script src="https://storage.googleapis.com/codelab-elements/native-shim.js"></script>
+  <script src="https://storage.googleapis.com/codelab-elements/custom-elements.min.js"></script>
+  <script src="https://storage.googleapis.com/codelab-elements/prettify.js"></script>
+  <script src="https://storage.googleapis.com/codelab-elements/codelab-elements.js"></script>
+  <script src="//support.google.com/inapp/api.js"></script>
+
+</body>
+</html>
